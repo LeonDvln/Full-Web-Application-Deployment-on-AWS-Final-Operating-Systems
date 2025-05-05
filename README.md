@@ -37,7 +37,12 @@ psql -h ravshanbek-2t-s3web.ct6ei6agkus4.ap-south-1.rds.amazonaws.com -U postgre
 
 ```sql
 SELECT * FROM test_table;
+```sql
+ALTER TABLE test_table DROP COLUMN text;
+```sql
+ALTER TABLE test_table ADD COLUMN text TEXT;
 ```
+
 
 ### 2. Flask Backend on EC2
 
