@@ -37,9 +37,13 @@ psql -h ravshanbek-2t-s3web.ct6ei6agkus4.ap-south-1.rds.amazonaws.com -U postgre
 
 ```sql
 SELECT * FROM test_table;
-```sql
+```
+#### Delete column
+```
 ALTER TABLE test_table DROP COLUMN text;
-```sql
+```
+#### Add column
+```
 ALTER TABLE test_table ADD COLUMN text TEXT;
 ```
 
