@@ -46,6 +46,10 @@ ALTER TABLE test_table DROP COLUMN text;
 ```
 ALTER TABLE test_table ADD COLUMN text TEXT;
 ```
+#### Drop a table
+```
+DROP TABLE test_table;
+```
 
 
 ### 2. Flask Backend on EC2
