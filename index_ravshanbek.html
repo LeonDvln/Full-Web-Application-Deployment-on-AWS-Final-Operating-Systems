@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ravshanbek's Web App</title>
+</head>
+<body>
+    <h1>Database Controller</h1>
+
+    <input type="text" id="textInput" placeholder="Enter some text">
+    <br><br>
+
+    <button onclick="addData()">Add</button>
+    <button onclick="deleteData()">Delete</button>
+
+    <p id="response"></p>
+
+    <script>
+        const apiBaseUrl = 'http://13.235.87.170:5000';  // Replace with your actual EC2 IP
+
+        function addData() {
+            const text = document.getElementById('textInput').value;
+
+            fetch(`${apiBaseUrl}/add`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('response').innerText = data.message;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function deleteData() {
+            const text = document.getElementById('textInput').value;
+
+            fetch(`${apiBaseUrl}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('response').innerText = data.message;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
