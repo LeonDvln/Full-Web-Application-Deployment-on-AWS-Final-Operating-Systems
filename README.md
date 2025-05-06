@@ -109,6 +109,7 @@ import psycopg2
 app = Flask(__name__)
 CORS(app)
 
+# PostgreSQL RDS connection details
 conn = psycopg2.connect(
     host="ravshanbek-2t-s3web.ct6ei6agkus4.ap-south-1.rds.amazonaws.com",
     database="ravshanbek_2t_s3web",
@@ -124,19 +125,41 @@ def home():
 def add_data():
     data = request.json.get('text')
     cur = conn.cursor()
-    cur.execute("INSERT INTO test_table (text) VALUES (%s);", (data,))
-    conn.commit()
-    cur.close()
-    return jsonify({"message": "Data added"}), 200
+    try:
+        cur.execute("INSERT INTO test_table (text) VALUES (%s);", (data,))
+        conn.commit()
+        return jsonify({"message": "Data added"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
 
 @app.route('/delete', methods=['POST'])
 def delete_data():
     data = request.json.get('text')
     cur = conn.cursor()
-    cur.execute("DELETE FROM test_table WHERE text = %s;", (data,))
-    conn.commit()
-    cur.close()
-    return jsonify({"message": "Data deleted"}), 200
+    try:
+        cur.execute("DELETE FROM test_table WHERE text = %s;", (data,))
+        conn.commit()
+        return jsonify({"message": "Data deleted"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
+
+@app.route('/list', methods=['GET'])
+def list_data():
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT text FROM test_table ORDER BY id DESC;")
+        rows = cur.fetchall()
+        return jsonify([row[0] for row in rows])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cur.close()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
@@ -149,43 +172,78 @@ if __name__ == '__main__':
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ravshanbek's Web App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <h1>Database Controller</h1>
+
     <input type="text" id="textInput" placeholder="Enter some text">
     <br><br>
+
     <button onclick="addData()">Add</button>
     <button onclick="deleteData()">Delete</button>
+
     <p id="response"></p>
 
+    <h2>Data in Table</h2>
+    <ul id="dataList"></ul>
+
     <script>
-        const apiBaseUrl = 'http://13.235.87.170:5000';
+        const apiBaseUrl = 'http://13.235.87.170:5000'; // Replace with your EC2 IP
 
         function addData() {
             const text = document.getElementById('textInput').value;
+
             fetch(`${apiBaseUrl}/add`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ text })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
             })
             .then(response => response.json())
-            .then(data => document.getElementById('response').innerText = data.message)
-            .catch(console.error);
+            .then(data => {
+                document.getElementById('response').innerText = data.message || data.error;
+                fetchData(); // Refresh data
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         function deleteData() {
             const text = document.getElementById('textInput').value;
+
             fetch(`${apiBaseUrl}/delete`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ text })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
             })
             .then(response => response.json())
-            .then(data => document.getElementById('response').innerText = data.message)
-            .catch(console.error);
+            .then(data => {
+                document.getElementById('response').innerText = data.message || data.error;
+                fetchData(); // Refresh data
+            })
+            .catch(error => console.error('Error:', error));
         }
+
+        function fetchData() {
+            fetch(`${apiBaseUrl}/list`)
+                .then(response => response.json())
+                .then(data => {
+                    const dataList = document.getElementById('dataList');
+                    dataList.innerHTML = ''; // Clear old list
+                    data.forEach(item => {
+                        const li = document.createElement('li');
+                        li.textContent = item;
+                        dataList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    document.getElementById('dataList').innerHTML = '<li>Error loading data</li>';
+                    console.error('Error fetching data:', error);
+                });
+        }
+
+        // Load data on page load
+        window.onload = fetchData;
     </script>
 </body>
 </html>
