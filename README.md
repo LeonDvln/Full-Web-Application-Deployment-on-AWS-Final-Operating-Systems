@@ -50,7 +50,10 @@ ALTER TABLE test_table ADD COLUMN text TEXT;
 ```sql
 DROP TABLE test_table;
 ```
-
+#### Rename table name
+```sql
+ALTER TABLE old_table_name RENAME TO new_table_name;
+```
 
 ### 2. Flask Backend on EC2
 
