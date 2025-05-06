@@ -54,6 +54,10 @@ DROP TABLE test_table;
 ```sql
 ALTER TABLE old_table_name RENAME TO new_table_name;
 ```
+#### Change password table
+```sql
+ALTER USER postgres WITH PASSWORD 'NewSecurePassword';
+```
 
 ### 2. Flask Backend on EC2
 
